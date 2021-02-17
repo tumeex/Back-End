@@ -1,0 +1,19 @@
+[
+    {
+      "$lookup": {
+        "from": "reviews", 
+        "localField": "_id", 
+        "foreignField": "book", 
+        "as": "reviews"
+      }
+    }, {
+      "$addFields": {
+        "rating": {
+          "$avg": "$reviews.star"
+        }, 
+        "comments": {
+          "$size": "$reviews"
+        }
+      }
+    }
+  ]
