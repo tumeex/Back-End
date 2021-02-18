@@ -1,4 +1,4 @@
 module.exports = {
     'mongoUrl': 'mongodb://localhost:27017/MBR',
-    'secretKey': '123456'
+    'secretKey': '1234567890'
 }

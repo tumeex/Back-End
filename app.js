@@ -1,7 +1,6 @@
 var http = require('http');
 var express = require('express');
 var config = require('./config');
-var path = require('path');
 var passport = require('passport');
 
 var indexRouter = require('./routes/indexRouter');
@@ -31,7 +30,6 @@ app.use(passport.initialize());
 
 app.use('/', indexRouter);
 app.use('/books', booksRouter);
-app.use('/users', userRouter);
 app.use('/home', userRouter);
 
 module.exports = app;

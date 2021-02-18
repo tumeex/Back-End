@@ -1,8 +1,8 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const User = require('../models/users');
-const passport = require('passport');
 const authenticate = require('../authenticate');
+const bcrypt = require("bcryptjs");
 
 const userRouter = express.Router();
 userRouter.use(bodyParser.json());
@@ -11,72 +11,46 @@ userRouter.route('/')
 .get(authenticate.verifyUser, (req, res, next) => {
   res.statusCode = 200;
   res.setHeader('Content-Type', 'application/json');
-  res.json('Welcome to your MBR profile page');
+  res.json('Welcome to your page ' + req.user.name);
 });
 
 userRouter.route('/register')
-.get((req, res, next) => {
-  if (req.body.name !== '' || req.body.password !== '') {
-    
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'application/json');
-    res.json('Welcome to MBR register page');
-  } else {
-    res.redirect('/');
-  }
-})
-.post((req, res, next) => {
-  User.register(new User({username: req.body.username}), 
-    req.body.password, (err, user) => {
-    if(err) {
-      res.statusCode = 500;
-      res.setHeader('Content-Type', 'application/json');
-      res.json({err: err});
-    }
-    else {
-      if (req.body.name)
-        user.name = req.body.name;
-        user.save((err, user) => {
-        if (err) {
-          res.statusCode = 500;
-          res.setHeader('Content-Type', 'application/json');
-          res.json({err: err});
-          return;
-        }
-        passport.authenticate('local')(req, res, () => {
-          res.statusCode = 200;
-          res.setHeader('Content-Type', 'application/json');
-          res.json({success: true, status: 'Registration Successful!'});
-        });
-      });
-    }
+.post(async (req, res, next) => {
+
+  var name = await User.findOne({name: req.body.name});
+  if (name) return res.status(400).json({error: 'Name already used!'});
+
+  if (req.body.admin) var admin = true;
+
+  var salt = await bcrypt.genSalt(10);
+  var password = await bcrypt.hash(req.body.password, salt);
+
+  var user = new User({
+    name: req.body.name,
+    admin: admin,
+    password,
   });
+
+  try {
+    const savedUser = await user.save();
+    res.json({  userId: savedUser._id, message: 'Registeration complete' });
+  } catch (error) {
+    res.status(400).json({ error });
+  }
 });
 
-userRouter.post('/login', (req, res, next) => {
 
-  passport.authenticate('local', (err, user, info) => {
-    if (err)
-      return next(err);
+userRouter.route('/login')
+.post(async (req, res, next) => {
 
-    if (!user) {
-      res.statusCode = 401;
-      res.setHeader('Content-Type', 'application/json');
-      res.json({success: false, status: 'Login Unsuccessful!', err: info});
-    }
-    req.logIn(user, (err) => {
-      if (err) {
-        res.statusCode = 401;
-        res.setHeader('Content-Type', 'application/json');
-        res.json({success: false, status: 'Login Unsuccessful!', err: 'Could not log in user!'});          
-      }
+  var user = await User.findOne({ name: req.body.name });
+  if (!user)  return res.status(400).json({ error: "Email is wrong" });
 
-      var token = authenticate.getToken({_id: req.user._id});
-      res.statusCode = 200;
-      res.setHeader('Content-Type', 'application/json');
-      res.json({success: true, status: 'Login Successful!', token: token});
-    }); 
-  }) (req, res, next);
+  var validPassword = bcrypt.compare(req.body.password, user.password);
+  if (!validPassword) return res.status(400).json({ error: "Password is wrong" });
+
+  var token = authenticate.login(user);
+  res.header("auth-token", token).json({token});
 });
 
 module.exports = userRouter;
