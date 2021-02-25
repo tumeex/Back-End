@@ -1,17 +1,27 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+var mongoose = require('mongoose');
 const User = require('../models/users');
 const authenticate = require('../authenticate');
 const bcrypt = require("bcryptjs");
+const findR = require('../queries/findReview');
+const Reviews = require('../models/reviews');
 
 const userRouter = express.Router();
 userRouter.use(bodyParser.json());
 
 userRouter.route('/')
 .get(authenticate.verifyUser, (req, res, next) => {
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'application/json');
-  res.json('Welcome to your page ' + req.user.name);
+  var id = mongoose.Types.ObjectId(authenticate.getUserId(req.header("auth-token")));
+  Reviews.aggregate(findR.findUserReviews(id),
+    function (err, resu) {
+      if (resu != '') {
+        res.json(resu);
+      } else {
+        res.json({message: 'You have not yet reviewed books'});
+      } 
+    }
+  )
 });
 
 userRouter.route('/register')

@@ -10,19 +10,28 @@ exports.verifyUser = (req, res, next) => {
     req.user = verified;
     next(); // to continue the flow
   } catch (err) {
-    res.status(400).json({ error: "Token is not valid" });
+    res.status(400).json({ error: "Please sign in" });
   }
 };
 
 exports.login = function(user) {
-    const token = jwt.sign(
-        {
-        name: user.name,
-        id: user._id,
-        },
-        config.secretKey
-    );
-    return token;
+  const token = jwt.sign(
+      {
+      name: user.name,
+      id: user._id,
+      },
+      config.secretKey
+  );
+  return token;
+};
+
+exports.getUserId = function(token) {
+  try {
+    const verified = jwt.verify(token, config.secretKey);
+    return verified.id;
+  } catch (err) {
+    return null;
+  }
 };
 
 exports.verifyAdmin = function(req, res, next) {

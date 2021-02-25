@@ -19,8 +19,8 @@ module.exports = {
                 }
                 }
             }, {
-                '$match': {
-                '_id': id
+                "$match": {
+                "_id": id
                 }
             }
         ];

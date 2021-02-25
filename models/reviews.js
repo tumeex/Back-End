@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-var commentSchema = new Schema({
+var reviewSchema = new Schema({
     comment:  {
         type: String
     },
@@ -13,16 +13,18 @@ var commentSchema = new Schema({
     },
     user: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
+        ref: 'User',
+        required: true
     },
     book: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Book'
+        ref: 'Book',
+        required: true
     }
 }, {
     timestamps: true
 });
 
-var Comments = mongoose.model('Comment', commentSchema);
+var Reviews = mongoose.model('Review', reviewSchema);
 
-module.exports = Comments;
+module.exports = Reviews;
