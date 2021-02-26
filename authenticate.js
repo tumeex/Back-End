@@ -17,28 +17,36 @@ exports.verifyUser = (req, res, next) => {
 exports.login = function(user) {
   const token = jwt.sign(
       {
-      name: user.name,
-      id: user._id,
+        id: user._id,
+        name: user.name,
+        admin: user.admin
       },
       config.secretKey
   );
   return token;
 };
 
-exports.getUserId = function(token) {
+exports.getUser = function(token) {
   try {
     const verified = jwt.verify(token, config.secretKey);
-    return verified.id;
+    return verified;
   } catch (err) {
     return null;
   }
 };
 
 exports.verifyAdmin = function(req, res, next) {
-    if (req.user.admin)
-        return next();
-    else 
-        err = new Error('You are not authorized to perform this operation!');
+  try {
+    const token = req.header("auth-token");
+    const verified = jwt.verify(token, config.secretKey);
+    if (verified.admin) {
+      return next();
+    } else {
+      err = new Error('You are not authorized to perform this operation!');
         err.status = 403;
         return next(err); 
+    }
+  } catch (err) {
+    return next(err);
+  }
 };
