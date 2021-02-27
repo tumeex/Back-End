@@ -23,7 +23,7 @@ booksRouter.route('/')
         }
     )
 })
-.post((req, res, next) => {
+.post(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     Books.create(req.body)
     .then((books) => {
         res.statusCode = 200;

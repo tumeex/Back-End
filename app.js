@@ -1,7 +1,6 @@
 var http = require('http');
 var express = require('express');
 var config = require('./config');
-var passport = require('passport');
 
 var indexRouter = require('./routes/indexRouter');
 var booksRouter = require('./routes/booksRouter');
@@ -25,8 +24,6 @@ server.listen(port);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-
-app.use(passport.initialize());
 
 app.use('/', indexRouter);
 app.use('/books', booksRouter);
